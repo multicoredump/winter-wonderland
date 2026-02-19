@@ -356,17 +356,24 @@
     .ice-row { font-size: 26px; letter-spacing: 8px; animation: iceFloat 1.2s ease-in-out infinite alternate; }
 
     /* ══════════════════════════════════ WIN SCREEN */
-    .win-content { text-align: center; padding: 20px; }
+    .win-content { text-align: center; padding: 20px; position: relative; z-index: 10; }
     .win-penguin { font-size: 90px; animation: winBounce 0.8s cubic-bezier(0.34,1.8,0.64,1); margin-bottom: 12px; }
-    .win-scene-img {
-      width: min(480px, 88vw); height: auto; border-radius: 22px;
-      box-shadow: 0 0 60px rgba(79,195,247,0.55), 0 8px 32px rgba(0,0,0,0.5);
-      animation: winImgPop 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
-      margin-bottom: 20px;
+
+    /* ══════════════════════ WIN SLIDE SCREEN */
+    #win-slide-screen { overflow: hidden; }
+    .win-slide-img {
+      position: absolute;
+      top: -20px; right: -20px;
+      width: min(260px, 39vw); height: auto;
+      border-radius: 22px;
+      box-shadow: 0 0 70px rgba(79,195,247,0.7), 0 12px 40px rgba(0,0,0,0.5);
+      animation: frostyDiag 6s ease-in forwards;
     }
-    @keyframes winImgPop {
-      0%   { transform: scale(0.6); opacity: 0; }
-      100% { transform: scale(1);   opacity: 1; }
+    @keyframes frostyDiag {
+      0%   { transform: translate(0, 0) rotate(0deg);           opacity: 0; }
+      6%   { transform: translate(-6vw, 5vh) rotate(-2deg);     opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translate(-155vw, 135vh) rotate(-8deg); opacity: 0.2; }
     }
     .win-title {
       font-family: 'Fredoka One', cursive;
@@ -780,6 +787,8 @@
   <div class="start-penguin"><img src="frosty.png" alt="Frosty"></div>
   <div class="start-title">Winter Wonderland<br>Frosty the Snowman</div>
   <button class="btn-action btn-ice" onclick="showRules()" style="margin-top:32px">❄️ Play ❄️</button>
+  <!-- TEST MODE -->
+  <button onclick="testWin()" style="margin-top:14px;background:rgba(255,200,0,0.15);border:1.5px dashed rgba(255,200,0,0.5);border-radius:50px;padding:8px 22px;color:rgba(255,200,0,0.8);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">🧪 Test Win Screen</button>
 </div>
 
 <!-- ════════════════════════════════════ RULES SCREEN -->
@@ -906,15 +915,20 @@
   </div>
 </div>
 
+<!-- ════════════════════════════ WIN SLIDE SCREEN -->
+<div class="screen" id="win-slide-screen">
+  <img class="win-slide-img" src="Snowy with Reindeers.png" alt="Frosty riding with reindeers">
+</div>
+
 <!-- ══════════════════════════════════════ WIN SCREEN -->
 <div class="screen" id="win-screen">
   <div class="win-content">
+    <div class="win-penguin"><img src="frosty.png" alt="Frosty"></div>
     <div class="win-title">🎉 Frosty Escaped! 🎉</div>
-    <img class="win-scene-img" src="Snowy with Reindeers.png" alt="Frosty riding with reindeers">
     <div class="win-sub">
       ❄️ You helped Frosty the Snowman escape the ice castle! ❄️
     </div>
-    <div class="win-hea">✨ ...and they lived happily ever after ✨</div>
+    <div class="win-hea">✨ ...and Frosty lived happily ever after ✨</div>
     <button class="btn-action btn-mint" onclick="restartGame()">🔄 Play Again!</button>
   </div>
 </div>
@@ -1112,7 +1126,33 @@ const Audio = (() => {
   function stopBg()  { if(bgTimeout){clearTimeout(bgTimeout);bgTimeout=null;} }
   function toggleMute() { muted=!muted; return muted; }
 
-  return { init, correct, wrong, levelClear, win, startBg, stopBg, toggleMute };
+  /* cheerful C-major pentatonic celebration melody */
+  const CHEERFUL = [
+    [1047,0.18],[1319,0.18],[1568,0.18],[1319,0.18],
+    [1047,0.18],[880, 0.18],[1047,0.35],[784, 0.18],
+    [880, 0.18],[1047,0.18],[1319,0.18],[1568,0.35],
+    [1319,0.18],[1047,0.18],[880, 0.18],[1047,0.35],
+    [784, 0.18],[880, 0.18],[1047,0.18],[1319,0.18],
+    [1568,0.18],[1319,0.18],[1047,0.35],[880, 0.35],
+  ];
+
+  function cheerfulTick() {
+    if (!ctx || muted) { bgTimeout = setTimeout(cheerfulTick, 200); return; }
+    const [freq, dur] = CHEERFUL[bgIdx % CHEERFUL.length];
+    bgIdx++;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'triangle'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.13, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur * 0.82);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
+    bgTimeout = setTimeout(cheerfulTick, dur * 1000);
+  }
+
+  function startCheerfulBg() { stopBg(); bgIdx=0; bgTimeout=setTimeout(cheerfulTick,100); }
+
+  return { init, correct, wrong, levelClear, win, startBg, stopBg, toggleMute, startCheerfulBg };
 })();
 
 /* ── 4. SNOWFLAKE CANVAS ─────────────────────────────────────── */
@@ -1196,7 +1236,7 @@ let _sceneCorrectIdx = 0;
 
 function showScene() {
   const levelNum = 10 - State.levelIdx;
-  document.getElementById('scene-level-label').textContent = `❄️ Level ${levelNum} of 10`;
+  document.getElementById('scene-level-label').textContent = `❄️ Level ${levelNum} of 10 ❄️`;
 
   // Fresh random objects for this scene
   const picked = shuffle([...SCENE_OBJECTS]).slice(0, 5);
@@ -1321,6 +1361,12 @@ function renderStrip() {
 function showRules() {
   Audio.init();
   showScreen('rules-screen');
+}
+
+/* TEST MODE — remove before shipping */
+function testWin() {
+  Audio.init();
+  showWin();
 }
 
 function startGame() {
@@ -1487,18 +1533,31 @@ function showLevelClear() {
 
 function showWin() {
   Audio.stopBg();
-  Audio.win();
-  showScreen('win-screen');
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const fakeEl = { getBoundingClientRect: () => ({
-        left: Math.random() * window.innerWidth,
-        top:  Math.random() * window.innerHeight,
-        width: 0, height: 0
-      })};
-      spawnParticles(fakeEl, ['❄️','⭐','💎','✨','🌟','🌨️']);
-    }, i * 140);
-  }
+  Audio.startCheerfulBg();        // cheerful music plays during slide
+
+  // Restart the CSS animation each time (so test mode works on repeat clicks)
+  const slideImg = document.querySelector('.win-slide-img');
+  slideImg.style.animation = 'none';
+  slideImg.offsetHeight;          // force reflow
+  slideImg.style.animation = '';
+
+  showScreen('win-slide-screen'); // phase 1: just Frosty sliding across
+
+  // Phase 2: after the 6s slide animation + small buffer, reveal win content
+  setTimeout(() => {
+    showScreen('win-screen');
+    Audio.win();                  // fanfare on top of cheerful bg
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        const fakeEl = { getBoundingClientRect: () => ({
+          left: Math.random() * window.innerWidth,
+          top:  Math.random() * window.innerHeight,
+          width: 0, height: 0
+        })};
+        spawnParticles(fakeEl, ['❄️','⭐','💎','✨','🌟','🌨️']);
+      }, i * 140);
+    }
+  }, 6400); // 400ms buffer after 6s animation
 }
 
 function showGameOver() {
