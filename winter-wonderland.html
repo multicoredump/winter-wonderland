@@ -1361,11 +1361,17 @@ function showRules() {
   showScreen('rules-screen');
 }
 
-/* Secret shortcut: Ctrl + Shift + W → jump to win screen */
+/* Secret shortcuts */
 document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.shiftKey && e.key === 'W') {
+    // Jump to win screen
     Audio.init();
     showWin();
+  }
+  if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+    // Reset mistake counter
+    State.wrongCount = 0;
+    updateMistakeCounter();
   }
 });
 
