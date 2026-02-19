@@ -1,4 +1,4 @@
-# ❄️ Winter Wonderland: Frosty the Snowman
+# ❄️ Winter Wonderland: Frosty the Snowman ❄️
 
 > A 10-level Math & English quiz game for 4th graders — help Frosty escape the ice castle!
 
