@@ -29,11 +29,9 @@ Frosty the Snowman is trapped inside a spooky ice castle, and only **you** can r
 
 ---
 
-## 📸 Screenshots
+## 📸 Screenshot
 
-| Winter Wonderland | Rules Screen |
-|---|---|
-| ![Winter Wonderland](Winter%20Wonderland%20Game.png) | ![Rules Screen](Winter%20Wonderland%20Rules.png) |
+![Winter Wonderland](Winter%20Wonderland%20Game.png)
 
 ---
 
