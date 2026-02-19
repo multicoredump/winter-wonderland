@@ -37,6 +37,7 @@ Frosty the Snowman is trapped inside a spooky ice castle, and only **you** can r
 | Web Audio API | Procedurally generated music and sound effects |
 | Canvas API | Real-time snowfall animation |
 | Google Fonts | Fredoka One + Nunito |
+| ChatGPT | Frosty Images |
 
 ---
 
@@ -69,4 +70,5 @@ open winter-wonderland.html
 | Role | Name |
 |---|---|
 | 🎨 Creative Director | Swara V |
+| ☃️ Creative Assests | ChatGPT |
 | 🤖 Co-authored with | [Claude](https://claude.ai) |
